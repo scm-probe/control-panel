@@ -3,6 +3,7 @@ import Graph from "./components/Graph";
 import Metrics from "./components/Metrics";
 import Setup from "./components/Setup";
 import { OptionsProvider } from "./components/context/options";
+import { Stack } from "@mui/material";
 
 function App() {
   return (
@@ -12,11 +13,16 @@ function App() {
       </header>
       <div className="main">
         <OptionsProvider>
-        <div className="main-container">
-          <Setup />
-          <Metrics />
-          <Graph />
-        </div>
+          <Stack
+            direction="column"
+            alignItems="flex-start"
+            justifyContent="space-around"
+            className="main-container"
+          >
+            <Setup />
+            <Metrics />
+            <Graph />
+          </Stack>
         </OptionsProvider>
       </div>
     </>

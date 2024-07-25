@@ -1,20 +1,34 @@
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, Typography, CircularProgress } from '@mui/material';
-import { Plot, timeFormatter, NINETEEN_EIGHTY_FOUR, fromFlux } from "@influxdata/giraffe";
+import {
+  Card,
+  CardContent,
+  Typography,
+  CircularProgress,
+  Stack,
+  ToggleButtonGroup,
+  ToggleButton,
+} from "@mui/material";
+import {
+  Plot,
+  timeFormatter,
+  NINETEEN_EIGHTY_FOUR,
+  fromFlux,
+} from "@influxdata/giraffe";
 import { useOptions } from "./context/options";
 
 const MetricsCard = () => {
   const [table, setTable] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const {metrics} = useOptions()
+  const { metrics } = useOptions();
+  const [query, setQuery] = useState("derivative");
 
   useEffect(() => {
     const getData = async () => {
       try {
         const csv_res = await fetch(
-          "http://localhost:1910/metrics?query=derivative",
-          { cache: "no-store" }
+          `http://localhost:1910/metrics?query=${query}`,
+          { cache: "no-store" },
         );
         const csv = await csv_res.text();
         const table = fromFlux(csv);
@@ -25,10 +39,14 @@ const MetricsCard = () => {
         setLoading(false);
       }
     };
-    getData();
-  }, []);
+    setInterval(() => {
+      if (metrics === true) {
+        getData();
+      }
+    }, 15000);
+  }, [metrics, query]);
 
-  const valueAxisLabel = "CPM";
+  const valueAxisLabel = "CPS";
 
   const lineLayer = {
     type: "line",
@@ -65,17 +83,64 @@ const MetricsCard = () => {
       }
     : null;
 
+  const handleToggleChange = (_, newQuery) => {
+    setQuery(newQuery);
+    setTable(null);
+  };
+
   return (
-    <Card variant='outlined' sx={{ width: "100%", backgroundColor: '#18181b', marginTop: 2 }}>
-      <CardContent sx={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
-        <Typography sx={{ fontSize: 24, color: "white", alignSelf: "flex-start" }}>
-          Metrics Graph
+    <Card
+      variant="outlined"
+      sx={{ width: "100%", backgroundColor: "#18181b", marginTop: 2 }}
+    >
+      <Stack
+        direction="row"
+        spacing={2}
+        justifyContent="space-between"
+        alignItems="center"
+        m={2}
+      >
+        <Typography
+          sx={{ fontSize: 24, color: "white", alignSelf: "flex-start" }}
+        >
+          Metrics Graph{" "}
+          {metrics && loading && <CircularProgress sx={{ color: "white" }} />}
         </Typography>
-        {loading && <CircularProgress sx={{ color: "white" }} />}
-        {error && <Typography sx={{ color: "red" }}>Error: {error.message}</Typography>}
-       {metrics ? <div style={{ width: '100%', height: '600px' }}>
-          {table && <Plot config={lineConfig} />}
-        </div> : <Typography sx={{ color: "white" }}>Metrics Not Enabled</Typography>}
+        <ToggleButtonGroup
+          color="secondary"
+          value={query}
+          exclusive
+          onChange={handleToggleChange}
+          aria-label="Platform"
+        >
+          <ToggleButton value="derivative">Derivative</ToggleButton>
+          <ToggleButton value="double_derivative">
+            Double Derivative
+          </ToggleButton>
+          <ToggleButton value="ema">EMA</ToggleButton>
+          <ToggleButton value="increase">Increase</ToggleButton>
+        </ToggleButtonGroup>
+      </Stack>
+      <CardContent
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        {metrics ? (
+          <div style={{ width: "100%", height: "600px" }}>
+            {error && (
+              <Typography sx={{ color: "red" }}>
+                Error: {error.message}
+              </Typography>
+            )}
+            {table && <Plot config={lineConfig} />}
+          </div>
+        ) : (
+          <Typography sx={{ color: "white" }}>Metrics Not Enabled</Typography>
+        )}
       </CardContent>
     </Card>
   );
