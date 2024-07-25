@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, Typography, CircularProgress } from '@mui/material';
 import { Plot, timeFormatter, NINETEEN_EIGHTY_FOUR, fromFlux } from "@influxdata/giraffe";
+import { useOptions } from "./context/options";
 
 const MetricsCard = () => {
   const [table, setTable] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const {metrics} = useOptions()
 
   useEffect(() => {
     const getData = async () => {
@@ -26,7 +28,7 @@ const MetricsCard = () => {
     getData();
   }, []);
 
-  const valueAxisLabel = "GB";
+  const valueAxisLabel = "CPM";
 
   const lineLayer = {
     type: "line",
@@ -71,9 +73,9 @@ const MetricsCard = () => {
         </Typography>
         {loading && <CircularProgress sx={{ color: "white" }} />}
         {error && <Typography sx={{ color: "red" }}>Error: {error.message}</Typography>}
-        <div style={{ width: '100%', height: '600px' }}>
+       {metrics ? <div style={{ width: '100%', height: '600px' }}>
           {table && <Plot config={lineConfig} />}
-        </div>
+        </div> : <Typography sx={{ color: "white" }}>Metrics Not Enabled</Typography>}
       </CardContent>
     </Card>
   );

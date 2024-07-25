@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, Typography } from '@mui/material';
 import Graphviz from 'graphviz-react';
+import { useOptions } from './context/options';
 
 const GraphCard = () => {
   const [dot, setDot] = useState("");
+  const {graph} = useOptions()
 
   useEffect(() => {
     const getDot = async () => {
@@ -20,7 +22,7 @@ const GraphCard = () => {
         <Typography sx={{ fontSize: 24, color: "white", alignSelf: "flex-start" }}>
           System Call Sequence
         </Typography>
-        <div style={{ width: '100%', overflowX: 'auto', textAlign:"center" }}>
+        {graph ? <div style={{ width: '100%', overflowX: 'auto', textAlign:"center" }}>
           {dot && (
             <Graphviz
               dot={dot}
@@ -33,7 +35,7 @@ const GraphCard = () => {
               }}
             />
           )}
-        </div>
+        </div> : <Typography sx={{ fontSize: 18, color: "white"}}> Graph not enabled.</Typography>}
       </CardContent>
     </Card>
   );
